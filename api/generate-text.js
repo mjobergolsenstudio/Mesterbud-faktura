@@ -47,10 +47,15 @@ Regler:
       messages: [{
         role: 'user',
         content: `Firmanavn: ${firmNavn || 'Ukjent'}\nJobbnotat: "${beskrivelse}"`
+      }, {
+        role: 'assistant',
+        content: '{'
       }]
     });
 
     let raw = (msg.content[0] && msg.content[0].text || '').trim();
+    // Siden vi prefiller med '{', må vi legge den tilbake foran svaret
+    if (!raw.startsWith('{')) raw = '{' + raw;
     // Fjern ev. markdown-fences for sikkerhets skyld
     raw = raw.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```$/i, '').trim();
 
@@ -58,11 +63,24 @@ Regler:
     try {
       parsed = JSON.parse(raw);
     } catch (e) {
-      // Fallback: hvis JSON feiler, returner notatet som én linje
-      return res.json({
-        fakturatekst: beskrivelse,
-        linjer: [{ beskrivelse: beskrivelse.slice(0, 80), antall: 1, pris: 0 }]
-      });
+      // Robust fallback: prøv å trekke ut selve JSON-objektet hvis modellen
+      // pakket det inn i tekst (f.eks. "Her er fakturaen: { ... }")
+      const start = raw.indexOf('{');
+      const end = raw.lastIndexOf('}');
+      if (start !== -1 && end !== -1 && end > start) {
+        try {
+          parsed = JSON.parse(raw.slice(start, end + 1));
+        } catch (e2) {
+          parsed = null;
+        }
+      }
+      if (!parsed) {
+        // Siste utvei: returner notatet som én linje
+        return res.json({
+          fakturatekst: beskrivelse,
+          linjer: [{ beskrivelse: beskrivelse.slice(0, 80), antall: 1, pris: 0 }]
+        });
+      }
     }
 
     // Valider og rens
