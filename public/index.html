@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mesterbud Faktura — Fra jobbnotat til faktura i Fiken</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 :root{--ink:#0f2340;--cream:#f4f7fb;--blue:#1a4fa0;--blue2:#2563c8;--sand:#dce8f7;--mid:#5a6a82;--border:rgba(15,35,64,.12);--r:12px;--shadow:0 4px 24px rgba(15,35,64,.10);--red:#dc2626;--green:#059669}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -51,6 +52,9 @@ textarea{resize:vertical;min-height:74px}
 .gen-btn:hover{background:var(--blue2)}
 .gen-btn:disabled{opacity:.6;cursor:wait}
 .fiken-btn{background:var(--green);color:#fff;border:none;border-radius:10px;padding:14px;width:100%;font-family:'DM Sans',sans-serif;font-weight:700;font-size:15px;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;transition:.2s}
+.pdf-btn{background:var(--ink);color:#fff;border:none;border-radius:10px;padding:14px;width:100%;font-family:'DM Sans',sans-serif;font-weight:700;font-size:15px;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;transition:.2s}
+.pdf-btn:hover{background:var(--blue)}
+.pdf-btn:disabled{opacity:.6;cursor:wait}
 .fiken-btn:hover{filter:brightness(1.07)}
 .fiken-btn:disabled{opacity:.6;cursor:wait}
 .spin{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
@@ -152,6 +156,7 @@ textarea{resize:vertical;min-height:74px}
       </div>
 
       <button class="gen-btn" id="gen-btn" onclick="generateAI()">✦ Lag fakturalinjer med AI</button>
+      <button class="pdf-btn" id="pdf-btn" onclick="lastNedPDF()">⬇ Last ned faktura som PDF</button>
       <button class="fiken-btn" id="fiken-btn" onclick="sendTilFiken()">📤 Opprett fakturautkast i Fiken</button>
       <div class="status-msg" id="status"></div>
     </div>
@@ -290,6 +295,32 @@ async function sendTilFiken(){
     setStatus('err','Ingen forbindelse til Fiken-tjenesten. (Backend /api/fiken-draft må være satt opp.)');
   }
   btn.disabled=false;btn.innerHTML='📤 Opprett fakturautkast i Fiken';
+}
+
+// ====== PDF: last ned fakturaen som PDF ======
+function lastNedPDF(){
+  var ex=lines.reduce(function(s,l){return s+l.ant*l.pris;},0);
+  if(ex<=0){setStatus('err','Legg til minst én linje med pris før du laster ned PDF.');return;}
+  var btn=document.getElementById('pdf-btn');
+  btn.disabled=true;btn.innerHTML='<div class="spin"></div> Lager PDF…';
+  // Sørg for at preview er oppdatert
+  liveUpdate();
+  var doc=document.getElementById('preview-doc');
+  var kNavn=(document.getElementById('k-navn').value||'kunde').replace(/[^a-z0-9æøå]/gi,'_');
+  var opt={
+    margin:[10,10,10,10],
+    filename:'faktura_'+kNavn+'.pdf',
+    image:{type:'jpeg',quality:0.98},
+    html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff'},
+    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
+  };
+  html2pdf().set(opt).from(doc).save().then(function(){
+    btn.disabled=false;btn.innerHTML='⬇ Last ned faktura som PDF';
+    setStatus('ok','✓ PDF lastet ned. Du finner den i nedlastinger.');
+  }).catch(function(){
+    btn.disabled=false;btn.innerHTML='⬇ Last ned faktura som PDF';
+    setStatus('err','Kunne ikke lage PDF. Prøv igjen.');
+  });
 }
 
 function setStatus(type,msg){var el=document.getElementById('status');el.className='status-msg '+type;el.textContent=msg;}
