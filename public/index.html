@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mesterbud Faktura — Fra jobbnotat til faktura i Fiken</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0f2340;--cream:#f4f7fb;--blue:#1a4fa0;--blue2:#2563c8;--sand:#dce8f7;--mid:#5a6a82;--border:rgba(15,35,64,.12);--r:12px;--shadow:0 4px 24px rgba(15,35,64,.10);--red:#dc2626;--green:#059669}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh}
+a{color:var(--blue);text-decoration:none}
+nav{position:fixed;top:0;left:0;right:0;height:60px;background:rgba(244,247,251,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:100}
+.logo{font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--ink);text-decoration:none}
+.logo span{color:var(--blue)}
+.nav-r{display:flex;align-items:center;gap:6px}
+.nav-badge{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--blue);background:var(--sand);padding:5px 10px;border-radius:100px}
+.app-wrap{max-width:1100px;margin:0 auto;padding:80px 16px 60px}
+.app-head{margin-bottom:20px}
+.sec-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-bottom:6px}
+.app-title{font-family:'Fraunces',serif;font-size:clamp(24px,5vw,34px);font-weight:900;color:var(--ink)}
+.app-sub{font-size:14px;color:var(--mid);margin-top:4px}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.card{background:#fff;border-radius:var(--r);padding:18px;border:1px solid var(--border);margin-bottom:12px;box-shadow:var(--shadow)}
+.card-title{font-family:'Fraunces',serif;font-weight:700;font-size:15px;margin-bottom:14px;display:flex;align-items:center;gap:7px}
+label{display:block;font-size:12px;font-weight:600;color:var(--mid);margin-bottom:5px}
+input,select,textarea{border:1.5px solid var(--border);border-radius:8px;padding:11px 12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);background:var(--cream);width:100%;transition:.2s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);background:#fff}
+textarea{resize:vertical;min-height:74px}
+.fg{margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.desc-wrap{position:relative}
+.desc-btns{position:absolute;right:8px;bottom:8px;display:flex;gap:4px}
+.desc-btn{background:var(--sand);border:none;border-radius:7px;width:34px;height:34px;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.desc-btn.recording{background:var(--red);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.5}}
+.mic-status{display:none;font-size:11px;color:var(--red);margin-top:6px}
+.pristype-btns{display:flex;gap:8px;margin-bottom:8px}
+.pristype-btn{flex:1;padding:9px;border-radius:8px;border:2px solid var(--border);background:var(--sand);color:var(--blue);font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;transition:.2s}
+.pristype-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.pristype-hint{font-size:12px;color:var(--mid);margin-bottom:10px}
+.lines-header{display:grid;grid-template-columns:1fr 70px 90px 32px;gap:8px;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--mid);margin-bottom:6px;padding:0 2px}
+.line-row{display:grid;grid-template-columns:1fr 70px 90px 32px;gap:8px;margin-bottom:8px}
+.line-row input{padding:9px 10px;font-size:13px}
+.rm-btn{background:#fee2e2;color:var(--red);border:none;border-radius:7px;cursor:pointer;font-size:16px;font-weight:700}
+.add-btn{background:var(--sand);color:var(--blue);border:none;border-radius:8px;padding:9px;width:100%;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;margin-top:2px}
+.totals-box{background:var(--cream);border-radius:10px;padding:13px;margin-top:12px}
+.tot-row{display:flex;justify-content:space-between;font-size:13px;color:var(--mid);padding:4px 0}
+.tot-row.final{font-weight:700;color:var(--ink);font-size:15px;border-top:1.5px solid var(--border);margin-top:5px;padding-top:9px}
+.gen-btn{background:var(--blue);color:#fff;border:none;border-radius:10px;padding:14px;width:100%;font-family:'DM Sans',sans-serif;font-weight:700;font-size:15px;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;transition:.2s}
+.gen-btn:hover{background:var(--blue2)}
+.gen-btn:disabled{opacity:.6;cursor:wait}
+.fiken-btn{background:var(--green);color:#fff;border:none;border-radius:10px;padding:14px;width:100%;font-family:'DM Sans',sans-serif;font-weight:700;font-size:15px;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;transition:.2s}
+.fiken-btn:hover{filter:brightness(1.07)}
+.fiken-btn:disabled{opacity:.6;cursor:wait}
+.spin{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.panel-right{position:sticky;top:78px}
+.preview-placeholder{background:#fff;border:2px dashed var(--border);border-radius:var(--r);padding:60px 20px;text-align:center;color:var(--mid)}
+.preview-placeholder .pi{font-size:38px;margin-bottom:10px}
+.preview-doc{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:24px;box-shadow:var(--shadow);font-size:12px}
+.prev-top{display:flex;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid var(--ink)}
+.prev-firm-name{font-family:'Fraunces',serif;font-weight:900;font-size:16px;color:var(--ink)}
+.prev-title{font-family:'Fraunces',serif;font-weight:900;font-size:22px;color:var(--blue);text-align:right}
+.prev-ai{background:var(--cream);border-radius:8px;padding:11px;font-size:11px;line-height:1.6;color:var(--ink-soft);margin-bottom:12px;color:#3d4a5e}
+.prev-table{width:100%;border-collapse:collapse;margin-bottom:8px}
+.prev-table th{font-size:10px;text-transform:uppercase;color:var(--mid);text-align:left;padding:7px 6px;border-bottom:1.5px solid var(--border)}
+.prev-table td{font-size:11px;padding:7px 6px;border-bottom:1px solid var(--border)}
+.prev-tots{margin-top:8px}
+.prev-tots .r{display:flex;justify-content:space-between;font-size:11px;color:var(--mid);padding:3px 0}
+.prev-tots .r.fin{font-weight:700;color:var(--ink);font-size:14px;border-top:2px solid var(--ink);margin-top:5px;padding-top:8px}
+.status-msg{margin-top:10px;padding:11px 13px;border-radius:9px;font-size:13px;font-weight:500;display:none}
+.status-msg.ok{display:block;background:#ecfdf5;color:var(--green);border:1px solid #6ee7b7}
+.status-msg.err{display:block;background:#fee2e2;color:var(--red);border:1px solid #fca5a5}
+.status-msg.info{display:block;background:var(--sand);color:var(--blue);border:1px solid #93b4e0}
+.action-btns{display:none}
+.action-btns.show{display:block}
+@media(max-width:820px){.panels{grid-template-columns:1fr}.panel-right{position:static}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="logo">Mester<span>bud</span></a>
+  <div class="nav-r"><span class="nav-badge">Faktura → Fiken</span></div>
+</nav>
+
+<div class="app-wrap">
+  <div class="app-head">
+    <div class="sec-label">Fakturautkast</div>
+    <div class="app-title">Fra jobbnotat til faktura</div>
+    <div class="app-sub">Fyll inn jobben — fakturautkastet bygges til høyre, klart for Fiken</div>
+  </div>
+
+  <div class="panels">
+    <!-- LEFT: input -->
+    <div class="panel-left">
+
+      <div class="card">
+        <div class="card-title">🏢 Ditt firma</div>
+        <div class="grid2">
+          <div class="fg"><label>Firmanavn</label><input id="f-navn" placeholder="Hansen Bygg AS" oninput="liveUpdate()"></div>
+          <div class="fg"><label>Org.nr</label><input id="f-org" placeholder="123 456 789" oninput="liveUpdate()"></div>
+          <div class="fg"><label>Adresse</label><input id="f-adr" placeholder="Storgata 1, Oslo" oninput="liveUpdate()"></div>
+          <div class="fg"><label>Telefon</label><input id="f-tlf" placeholder="999 00 000" oninput="liveUpdate()"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">👤 Kunde</div>
+        <div class="grid2">
+          <div class="fg"><label>Kundenavn</label><input id="k-navn" placeholder="Ola Nordmann" oninput="liveUpdate()"></div>
+          <div class="fg"><label>Telefon</label><input id="k-tlf" placeholder="900 00 000" oninput="liveUpdate()"></div>
+          <div class="fg full" style="grid-column:1/-1"><label>Adresse</label><input id="k-adr" placeholder="Veien 2, Drammen" oninput="liveUpdate()"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🔧 Jobb og priser</div>
+        <div class="fg">
+          <label>Jobbnotat (AI rydder det til fakturatekst)</label>
+          <div class="desc-wrap">
+            <textarea id="j-besk" placeholder="Skiftet 12 takstoler på garasje, 6 timer arbeid, materialer 4200 kr, kjøring Oslo–Drammen" oninput="liveUpdate()"></textarea>
+            <div class="desc-btns"><button type="button" class="desc-btn" id="mic-btn" onclick="toggleMic()" title="Tal inn">🎤</button></div>
+          </div>
+          <div class="mic-status" id="mic-status">Lytter… snakk nå</div>
+        </div>
+
+        <div class="pristype-btns">
+          <button type="button" class="pristype-btn" id="btn-time" onclick="setPristype('time')">⏱ Timespris</button>
+          <button type="button" class="pristype-btn active" id="btn-fast" onclick="setPristype('fast')">💰 Fastpris</button>
+        </div>
+        <div class="pristype-hint" id="pristype-hint">Fastpris: fyll inn faste priser per linje</div>
+
+        <div class="lines-header"><span>Beskrivelse</span><span id="lh-ant">Antall</span><span id="lh-pris">Pris/stk</span><span></span></div>
+        <div id="lines-container"></div>
+        <button class="add-btn" onclick="addLine()">+ Legg til linje</button>
+
+        <div class="totals-box">
+          <div class="tot-row"><span>Sum eks. MVA</span><span id="t-ex">0 kr</span></div>
+          <div class="tot-row"><span>MVA (25%)</span><span id="t-mva">0 kr</span></div>
+          <div class="tot-row final"><span>Totalt inkl. MVA</span><span id="t-tot">0 kr</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">💳 Fakturadetaljer</div>
+        <div class="grid2">
+          <div class="fg"><label>Betalingsfrist</label><select id="j-bet"><option value="14">14 dager</option><option value="30" selected>30 dager</option><option value="45">45 dager</option></select></div>
+          <div class="fg"><label>Fakturadato</label><input type="date" id="j-dato"></div>
+        </div>
+      </div>
+
+      <button class="gen-btn" id="gen-btn" onclick="generateAI()">✦ Lag fakturalinjer med AI</button>
+      <button class="fiken-btn" id="fiken-btn" onclick="sendTilFiken()">📤 Opprett fakturautkast i Fiken</button>
+      <div class="status-msg" id="status"></div>
+    </div>
+
+    <!-- RIGHT: preview -->
+    <div class="panel-right">
+      <div id="preview-placeholder" class="preview-placeholder"><div class="pi">🧾</div><p>Fyll inn feltene til venstre — fakturautkastet vises her i sanntid</p></div>
+      <div id="preview-doc" class="preview-doc" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ====== STATE (samme modell som mesterbud.no) ======
+var lines=[{id:0,desc:'',ant:1,pris:0}];
+var lid=1;
+var pristype='fast';
+var aiText='';
+var aiGenerated=false;
+
+// sett dagens dato
+document.getElementById('j-dato').valueAsDate=new Date();
+
+// ====== LINES (identisk logikk fra original) ======
+function setPristype(type){
+  pristype=type;
+  document.getElementById('btn-time').classList.toggle('active',type==='time');
+  document.getElementById('btn-fast').classList.toggle('active',type==='fast');
+  document.getElementById('lh-ant').textContent=type==='time'?'Timer':'Antall';
+  document.getElementById('lh-pris').textContent=type==='time'?'Timepris':'Pris/stk';
+  document.getElementById('pristype-hint').textContent=type==='time'?'Timespris: antall timer × timepris per linje':'Fastpris: fyll inn faste priser per linje';
+  liveUpdate();
+}
+function addLine(){lines.push({id:lid++,desc:'',ant:1,pris:0});renderLines();}
+function removeLine(id){lines=lines.filter(function(l){return l.id!==id;});renderLines();liveUpdate();}
+function updateLine(id,field,val){var l=lines.find(function(l){return l.id===id;});if(l){l[field]=field==='desc'?val:parseFloat(val)||0;calcTot();liveUpdate();}}
+function renderLines(){
+  document.getElementById('lines-container').innerHTML=lines.map(function(l){
+    return'<div class="line-row"><input type="text" placeholder="Beskrivelse" value="'+l.desc+'" oninput="updateLine('+l.id+',\'desc\',this.value)"><input type="number" placeholder="1" value="'+l.ant+'" oninput="updateLine('+l.id+',\'ant\',this.value)" min="0"><input type="number" placeholder="0" value="'+(l.pris||'')+'" oninput="updateLine('+l.id+',\'pris\',this.value)" min="0"><button class="rm-btn" onclick="removeLine('+l.id+')">×</button></div>';
+  }).join('');calcTot();
+}
+function calcTot(){var ex=lines.reduce(function(s,l){return s+l.ant*l.pris;},0),mva=ex*.25,tot=ex+mva;document.getElementById('t-ex').textContent=fmt(ex);document.getElementById('t-mva').textContent=fmt(mva);document.getElementById('t-tot').textContent=fmt(tot);}
+function fmt(n){return n.toLocaleString('nb-NO',{minimumFractionDigits:0,maximumFractionDigits:0})+' kr';}
+
+// ====== MIC (identisk fra original) ======
+var recognition=null,isListening=false;
+function toggleMic(){
+  if(!('webkitSpeechRecognition'in window)&&!('SpeechRecognition'in window)){alert('Stemmeinput støttes kun i Chrome.');return;}
+  if(isListening){recognition.stop();return;}
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;recognition=new SR();recognition.lang='nb-NO';recognition.continuous=true;recognition.interimResults=false;
+  recognition.onstart=function(){isListening=true;document.getElementById('mic-btn').classList.add('recording');document.getElementById('mic-status').style.display='block';};
+  recognition.onresult=function(e){var txt='';for(var i=e.resultIndex;i<e.results.length;i++)txt+=e.results[i][0].transcript+' ';var ta=document.getElementById('j-besk');ta.value=(ta.value+' '+txt).trim();liveUpdate();};
+  recognition.onend=function(){isListening=false;document.getElementById('mic-btn').classList.remove('recording');document.getElementById('mic-status').style.display='none';};
+  recognition.onerror=function(e){isListening=false;document.getElementById('mic-btn').classList.remove('recording');document.getElementById('mic-status').style.display='none';};
+  recognition.start();
+}
+
+// ====== LIVE PREVIEW (tilpasset: TILBUD → FAKTURAUTKAST) ======
+function liveUpdate(){
+  var fNavn=document.getElementById('f-navn').value||'',kNavn=document.getElementById('k-navn').value||'';
+  if(!fNavn&&!kNavn&&lines.every(function(l){return!l.desc&&!l.pris;})){
+    document.getElementById('preview-placeholder').style.display='block';
+    document.getElementById('preview-doc').style.display='none';return;
+  }
+  document.getElementById('preview-placeholder').style.display='none';
+  document.getElementById('preview-doc').style.display='block';
+  renderPreview(aiGenerated?aiText:'');
+}
+function renderPreview(ai){
+  var fNavn=document.getElementById('f-navn').value||'Firmanavn AS',fOrg=document.getElementById('f-org').value,fAdr=document.getElementById('f-adr').value,fTlf=document.getElementById('f-tlf').value;
+  var kNavn=document.getElementById('k-navn').value||'Kunde',kTlf=document.getElementById('k-tlf').value,kAdr=document.getElementById('k-adr').value;
+  var bet=document.getElementById('j-bet').value;
+  var datoVal=document.getElementById('j-dato').value;
+  var ex=lines.reduce(function(s,l){return s+l.ant*l.pris;},0),mva=ex*.25,tot=ex+mva;
+  var today=datoVal?new Date(datoVal).toLocaleDateString('nb-NO'):new Date().toLocaleDateString('nb-NO');
+  var forfall=new Date((datoVal?new Date(datoVal):new Date()).getTime()+bet*86400000).toLocaleDateString('nb-NO');
+  var nr='UTKAST';
+  var antlbl=pristype==='time'?'Timer':'Ant.',prislbl=pristype==='time'?'Timepris':'Pris/stk';
+  document.getElementById('preview-doc').innerHTML=
+    '<div class="prev-top"><div><div class="prev-firm-name">'+fNavn+'</div>'+(fOrg?'<div style="font-size:10px;color:var(--mid)">Org.nr: '+fOrg+'</div>':'')+(fAdr?'<div style="font-size:10px;color:var(--mid)">'+fAdr+'</div>':'')+(fTlf?'<div style="font-size:10px;color:var(--mid)">'+fTlf+'</div>':'')+'</div>'+
+    '<div><div class="prev-title">FAKTURA</div><div style="font-size:10px;color:var(--mid);text-align:right">Status: '+nr+'</div><div style="font-size:10px;color:var(--mid);text-align:right">Dato: '+today+'</div><div style="font-size:10px;color:var(--mid);text-align:right">Forfall: '+forfall+'</div></div></div>'+
+    '<div style="margin-bottom:12px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--mid);margin-bottom:3px">Fakturamottaker</div><div style="font-weight:600;font-size:12px">'+kNavn+'</div>'+(kAdr?'<div style="font-size:10px;color:var(--mid)">'+kAdr+'</div>':'')+(kTlf?'<div style="font-size:10px;color:var(--mid)">'+kTlf+'</div>':'')+'</div>'+
+    (ai?'<div class="prev-ai">'+ai+'</div>':'')+
+    '<table class="prev-table"><thead><tr><th>Beskrivelse</th><th style="text-align:center">'+antlbl+'</th><th style="text-align:right">'+prislbl+'</th><th style="text-align:right">Sum</th></tr></thead><tbody>'+
+    lines.filter(function(l){return l.desc||l.pris>0;}).map(function(l){return'<tr><td>'+(l.desc||'–')+'</td><td style="text-align:center">'+l.ant+'</td><td style="text-align:right">'+fmt(l.pris)+'</td><td style="text-align:right">'+fmt(l.ant*l.pris)+'</td></tr>';}).join('')+
+    '</tbody></table><div class="prev-tots"><div class="r"><span>Sum eks. MVA</span><span>'+fmt(ex)+'</span></div><div class="r"><span>MVA (25%)</span><span>'+fmt(mva)+'</span></div><div class="r fin"><span>Å betale</span><span>'+fmt(tot)+'</span></div></div>'+
+    '<div style="margin-top:14px;font-size:10px;color:var(--mid);line-height:1.7"><strong style="color:var(--ink)">Betaling:</strong> Innen '+bet+' dager netto fra fakturadato. Ved forsinket betaling beregnes forsinkelsesrente iht. forsinkelsesrenteloven.</div>';
+}
+
+// ====== AI: lag fakturalinjer fra jobbnotat (bruker /api/generate-text) ======
+async function generateAI(){
+  var btn=document.getElementById('gen-btn');
+  var besk=document.getElementById('j-besk').value.trim();
+  if(!besk){setStatus('err','Skriv et jobbnotat først.');return;}
+  btn.disabled=true;btn.innerHTML='<div class="spin"></div> Lager fakturalinjer…';
+  var fNavn=document.getElementById('f-navn').value||'Firmanavn AS';
+  try{
+    var r=await fetch('/api/generate-text',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({beskrivelse:besk,firmNavn:fNavn,pristype:pristype})});
+    var d=await r.json();
+    if(d.fakturatekst)aiText=d.fakturatekst;
+    // Bygg fakturalinjer fra AI-respons
+    if(d.linjer&&d.linjer.length){
+      lines=d.linjer.map(function(l){return{id:lid++,desc:l.beskrivelse||'',ant:l.antall||1,pris:l.pris||0};});
+      renderLines();
+    }
+    aiGenerated=true;liveUpdate();
+    setStatus('ok','✓ Fakturalinjer laget. Sjekk over tallene og opprett utkast i Fiken når du er klar.');
+  }catch(e){
+    setStatus('err','Kunne ikke nå AI-tjenesten. (Backend /api/generate-text må være satt opp.)');
+  }
+  btn.disabled=false;btn.innerHTML='✦ Lag fakturalinjer med AI';
+}
+
+// ====== FIKEN: opprett fakturautkast ======
+async function sendTilFiken(){
+  var btn=document.getElementById('fiken-btn');
+  var ex=lines.reduce(function(s,l){return s+l.ant*l.pris;},0);
+  if(ex<=0){setStatus('err','Legg til minst én linje med pris før du sender til Fiken.');return;}
+  btn.disabled=true;btn.innerHTML='<div class="spin"></div> Oppretter utkast…';
+  var payload={
+    kunde:{navn:document.getElementById('k-navn').value,adresse:document.getElementById('k-adr').value,telefon:document.getElementById('k-tlf').value},
+    linjer:lines.filter(function(l){return l.desc||l.pris>0;}).map(function(l){return{beskrivelse:l.desc,antall:l.ant,pris:l.pris};}),
+    fakturatekst:aiGenerated?aiText:document.getElementById('j-besk').value,
+    betalingsfrist:parseInt(document.getElementById('j-bet').value,10),
+    fakturadato:document.getElementById('j-dato').value
+  };
+  try{
+    var r=await fetch('/api/fiken-draft',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    var d=await r.json();
+    if(r.ok&&d.ok){
+      setStatus('ok','✓ Fakturautkast opprettet i Fiken! Åpne Fiken for å se over og sende.');
+    }else{
+      setStatus('err','Kunne ikke opprette utkast: '+(d.error||'ukjent feil')+'. Sjekk at Fiken-koblingen er satt opp.');
+    }
+  }catch(e){
+    setStatus('err','Ingen forbindelse til Fiken-tjenesten. (Backend /api/fiken-draft må være satt opp.)');
+  }
+  btn.disabled=false;btn.innerHTML='📤 Opprett fakturautkast i Fiken';
+}
+
+function setStatus(type,msg){var el=document.getElementById('status');el.className='status-msg '+type;el.textContent=msg;}
+
+// init
+renderLines();
+</script>
+</body>
+</html>
